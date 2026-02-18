@@ -10,13 +10,18 @@
     .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
     input[type="search"] { padding: 8px 10px; min-width: 320px; max-width: 100%; }
     .meta { color: #555; font-size: 12px; }
+
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
-    th { position: sticky; top: 0; background: #f7f7f7; text-align: left; }
+    th { position: sticky; top: 0; background: #f7f7f7; text-align: left; user-select: none; }
     tr:nth-child(even) { background: #fbfbfb; }
     .small { white-space: nowrap; }
     .abstract { max-width: 60ch; }
     .muted { color: #777; }
+
+    /* sort UI */
+    th.sortable { cursor: pointer; }
+    th .sort-ind { font-size: 11px; color: #666; margin-left: 6px; }
   </style>
 </head>
 <body>
@@ -24,19 +29,20 @@
   <div class="toolbar">
     <input id="q" type="search" placeholder="Filtra (autori, rivista, anno, DOI, ecc.)…" />
     <span class="meta">Righe: <span id="count">21</span></span>
+    <span class="meta muted">Suggerimento: clicca sulle intestazioni per ordinare</span>
   </div>
 
   <table id="t">
     <thead>
       <tr>
-        <th class="small">DOI</th>
-        <th class="small">PDF</th>
-        <th>Autori</th>
-        <th>Rivista / Proceedings</th>
-        <th class="small">Volume</th>
-        <th class="small">Anno</th>
-        <th class="small">Pagine</th>
-        <th class="abstract">Abstract</th>
+        <th class="small sortable" data-key="doi" data-type="text">DOI<span class="sort-ind"></span></th>
+        <th class="small sortable" data-key="pdf" data-type="text">PDF<span class="sort-ind"></span></th>
+        <th class="sortable" data-key="authors" data-type="text">Autori<span class="sort-ind"></span></th>
+        <th class="sortable" data-key="journal" data-type="text">Rivista / Proceedings<span class="sort-ind"></span></th>
+        <th class="small sortable" data-key="volume" data-type="text">Volume<span class="sort-ind"></span></th>
+        <th class="small sortable" data-key="year" data-type="num">Anno<span class="sort-ind"></span></th>
+        <th class="small sortable" data-key="pages" data-type="text">Pagine<span class="sort-ind"></span></th>
+        <th class="abstract sortable" data-key="abstract" data-type="text">Abstract<span class="sort-ind"></span></th>
       </tr>
     </thead>
     <tbody>
@@ -48,7 +54,12 @@
 (function() {
   const q = document.getElementById('q');
   const t = document.getElementById('t');
+  const tbody = t.tBodies[0];
   const count = document.getElementById('count');
+  const headers = Array.from(t.tHead.rows[0].cells);
+
+  // Stato ordinamento: { colIndex, dir: 1 asc | -1 desc }
+  const sortState = { colIndex: null, dir: 1 };
 
   function normalize(s) {
     return (s || '').toLowerCase();
@@ -56,7 +67,7 @@
 
   function applyFilter() {
     const needle = normalize(q.value);
-    const rows = t.tBodies[0].rows;
+    const rows = tbody.rows;
     let visible = 0;
     for (const r of rows) {
       const text = normalize(r.innerText);
@@ -66,6 +77,75 @@
     }
     count.textContent = visible;
   }
+
+  function cellValue(row, colIndex) {
+    // textContent è più stabile di innerText per link e span "—"
+    return (row.cells[colIndex]?.textContent || '').trim();
+  }
+
+  function parseNum(s) {
+    // estrae il primo intero (utile per year, volumi "12", "12A", ecc.)
+    const m = String(s).match(/-?\d+/);
+    return m ? parseInt(m[0], 10) : Number.NEGATIVE_INFINITY;
+  }
+
+  function clearIndicators() {
+    for (const th of headers) {
+      const ind = th.querySelector('.sort-ind');
+      if (ind) ind.textContent = '';
+    }
+  }
+
+  function setIndicator(th, dir) {
+    const ind = th.querySelector('.sort-ind');
+    if (!ind) return;
+    ind.textContent = dir === 1 ? '▲' : '▼';
+  }
+
+  function sortBy(colIndex, type, dir) {
+    const rows = Array.from(tbody.rows);
+
+    rows.sort((a, b) => {
+      const av = cellValue(a, colIndex);
+      const bv = cellValue(b, colIndex);
+
+      if (type === 'num') {
+        const an = parseNum(av);
+        const bn = parseNum(bv);
+        if (an === bn) return 0;
+        return (an < bn ? -1 : 1) * dir;
+      }
+
+      // testo: localeCompare con numeric aiuta per stringhe tipo "Vol 9" vs "Vol 10"
+      const cmp = av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
+      return cmp * dir;
+    });
+
+    // riattacca in ordine
+    for (const r of rows) tbody.appendChild(r);
+
+    // riapplica filtro per mantenere conteggio coerente
+    applyFilter();
+  }
+
+  headers.forEach((th, idx) => {
+    if (!th.classList.contains('sortable')) return;
+
+    th.addEventListener('click', () => {
+      const type = th.dataset.type || 'text';
+
+      if (sortState.colIndex === idx) {
+        sortState.dir *= -1; // toggle
+      } else {
+        sortState.colIndex = idx;
+        sortState.dir = 1;
+      }
+
+      clearIndicators();
+      setIndicator(th, sortState.dir);
+      sortBy(idx, type, sortState.dir);
+    });
+  });
 
   q.addEventListener('input', applyFilter);
   applyFilter();
