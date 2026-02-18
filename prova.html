@@ -11,23 +11,75 @@
     input[type="search"] { padding: 8px 10px; min-width: 320px; max-width: 100%; }
     .meta { color: #555; font-size: 12px; }
 
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
-    th { position: sticky; top: 0; background: #f7f7f7; text-align: left; user-select: none; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed; /* ellissi/compattezza */
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      vertical-align: middle;
+      white-space: nowrap;        /* NO a capo */
+      overflow: hidden;           /* taglia */
+      text-overflow: ellipsis;    /* … */
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: #f7f7f7;
+      text-align: left;
+      user-select: none;
+      z-index: 2;
+    }
     tr:nth-child(even) { background: #fbfbfb; }
-    .small { white-space: nowrap; }
-    .abstract { max-width: 60ch; }
     .muted { color: #777; }
 
-    /* sort UI */
     th.sortable { cursor: pointer; }
     th .sort-ind { font-size: 11px; color: #666; margin-left: 6px; }
+
+    .c-doi    { width: 12rem; }
+    .c-pdf    { width: 4.5rem; text-align: center; }
+    .c-authors{ width: 12rem; }
+    .c-title  { width: 26rem; }
+    .c-journal{ width: 18rem; }
+    .c-volume { width: 6rem; }
+    .c-year   { width: 6rem; }
+    .c-pages  { width: 8rem; }
+
+    a { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
+
+    /* Tooltip hover custom */
+    #tip {
+      position: fixed;
+      display: none;
+      max-width: min(820px, 92vw);
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.35;
+      color: #111;
+      z-index: 9999;
+      pointer-events: none;
+      white-space: normal; /* nel tooltip posso andare a capo */
+      overflow-wrap: anywhere;
+    }
+    #tip .k {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+      display: block;
+    }
   </style>
 </head>
 <body>
   <h1>Bibliografia: prova.bib (21 record)</h1>
+
   <div class="toolbar">
-    <input id="q" type="search" placeholder="Filtra (autori, rivista, anno, DOI, ecc.)…" />
+    <input id="q" type="search" placeholder="Filtra (autori, titolo, rivista, anno, DOI, ecc.)…" />
     <span class="meta">Righe: <span id="count">21</span></span>
     <span class="meta muted">Suggerimento: clicca sulle intestazioni per ordinare</span>
   </div>
@@ -35,20 +87,22 @@
   <table id="t">
     <thead>
       <tr>
-        <th class="small sortable" data-key="doi" data-type="text">DOI<span class="sort-ind"></span></th>
-        <th class="small sortable" data-key="pdf" data-type="text">PDF<span class="sort-ind"></span></th>
-        <th class="sortable" data-key="authors" data-type="text">Autori<span class="sort-ind"></span></th>
-        <th class="sortable" data-key="journal" data-type="text">Rivista / Proceedings<span class="sort-ind"></span></th>
-        <th class="small sortable" data-key="volume" data-type="text">Volume<span class="sort-ind"></span></th>
-        <th class="small sortable" data-key="year" data-type="num">Anno<span class="sort-ind"></span></th>
-        <th class="small sortable" data-key="pages" data-type="text">Pagine<span class="sort-ind"></span></th>
-        <th class="abstract sortable" data-key="abstract" data-type="text">Abstract<span class="sort-ind"></span></th>
+        <th class="c-doi sortable" data-type="text">DOI<span class="sort-ind"></span></th>
+        <th class="c-pdf sortable" data-type="text">PDF<span class="sort-ind"></span></th>
+        <th class="c-authors sortable" data-type="text">Autori<span class="sort-ind"></span></th>
+        <th class="c-title sortable" data-type="text">Titolo<span class="sort-ind"></span></th>
+        <th class="c-journal sortable" data-type="text">Rivista / Proceedings<span class="sort-ind"></span></th>
+        <th class="c-volume sortable" data-type="text">Volume<span class="sort-ind"></span></th>
+        <th class="c-year sortable" data-type="num">Anno<span class="sort-ind"></span></th>
+        <th class="c-pages sortable" data-type="text">Pagine<span class="sort-ind"></span></th>
       </tr>
     </thead>
     <tbody>
-      <tr><td><a href="https://doi.org/10.1016/j.asr.2020.06.017" target="_blank" rel="noopener noreferrer">10.1016/j.asr.2020.06.017</a></td><td><span class="muted">—</span></td><td>Miroslav A. Rozhkov; Olga L. Starinova; Irina V. Chernyakina</td><td>Advances in Space Research</td><td>67</td><td>2021</td><td>2757-2766</td><td>Detailed dynamic modeling of a solar sail requires recording of solar radiation pressure influence. A photon-solar sail is determined by the thrust value and the direction. We define the solar sail’s reflectivity depending on the film materials, the sail design and temperature, the thickness of multiple layers, and degradation factor, with a reasonable degree of accuracy. Thus, this work is devoted to the identification of optical characteristics of thin multilayer films in space flight conditions, i.e. to finding its reflectance, absorbance, and transmittance. In particular, the paper asks whether the solar sail simulates by a mathematical model of the optical characteristics of a multilayer epitaxial thin film. The temperature change effect and optical properties of solar sail degradation are considered as well. Solar sail flight from Earth to Mercury is designed as a simulation of the flight change in optical parameters.</td></tr><tr><td><a href="https://doi.org/10.1364/JOSAA.35.001261" target="_blank" rel="noopener noreferrer">10.1364/JOSAA.35.001261</a></td><td><span class="muted">—</span></td><td>D. Zola; C. Circi; G. Vulpetti; S. Scaglione</td><td>J. Opt. Soc. Am. A</td><td>35</td><td>2018</td><td>1261–1271</td><td>The solar photon sail (SPS) allows space missions without propellant that would otherwise not be feasible. Thrust models frequently used in the literature for the calculation of trajectories often underestimate the effect that the surface roughness has on SPS dynamics. A small variation of the thrust vector can induce a large modification of sail flight. In this work, the variation of the photon momentum vector (PMV) is computed as resulting from the incident Sun radiation, taking into account the absorbed and reflected photons. The momentum resulting from diffuse light has been modeled by using vectorial scattering theories in the limit of a quasi-smooth sail where the first-order of Rayleigh\&amp;\#x2013;Rice can be applied. In particular, the momentum change resulting from diffuse radiation causes a PMV reduction as well as a deviation of its direction from what is foreseen in the case of an ideally smooth sail.</td></tr><tr><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td>Jerome L Wright</td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td>1992</td><td><span class="muted">—</span></td><td><span class="muted">—</span></td></tr><tr><td><a href="https://doi.org/10.1029/2008GL036373" target="_blank" rel="noopener noreferrer">10.1029/2008GL036373</a></td><td><span class="muted">—</span></td><td>Thomas N. Woods; Phillip C. Chamberlin; Jerald W. Harder; Rachel A. Hock; Martin Snow; Francis G. Eparvier; Juan Fontenla; William E. McClintock; Erik C. Richard</td><td>Geophysical Research Letters</td><td>36</td><td>2009</td><td>L01101-1:5</td><td>The IHY2007 Whole Heliosphere Interval (WHI) for solar Carrington Rotation 2068 (20 March to 16 April 2008) has been very successful in obtaining a wide variety of solar, heliospheric, and planetary observations during times of solar cycle minimum conditions. One of these efforts is the generation of solar irradiance reference spectra (SIRS) from 0.1 nm to 2400 nm using a combination of satellite and sounding rocket observations. These reference spectra include daily satellite observations from TIMED Solar Extreme ultraviolet Experiment (SEE) and Solar Radiation and Climate Experiment (SORCE) instruments. The extreme ultraviolet range is also improved with higher spectral resolution observations using the prototype SDO Extreme ultraviolet Variability Experiment (EVE) aboard a sounding rocket launched on 14 April 2008. The SIRS result is an important accomplishment in that it is the first data set to have simultaneous measurements over the full spectral coverage up to 2400 nm during solar cycle minimum conditions.</td></tr><tr><td><a href="https://doi.org/10.1063/1.3243762" target="_blank" rel="noopener noreferrer">10.1063/1.3243762</a></td><td><span class="muted">—</span></td><td>Wolfgang S. M. Werner; Kathrin Glantschnig; Claudia Ambrosch-Draxl</td><td>Journal of Physical and Chemical Reference Data</td><td>38</td><td>2009</td><td>1013-1092</td><td><span class="muted">—</span></td></tr><tr><td><a href="https://doi.org/10.2478/s11534-011-0096-2" target="_blank" rel="noopener noreferrer">10.2478/s11534-011-0096-2</a></td><td><span class="muted">—</span></td><td>David Nečas; Petr Klapetek</td><td>Central European Journal of Physics</td><td>10</td><td>2012</td><td>181-188</td><td><span class="muted">—</span></td></tr><tr><td><a href="https://doi.org/10.1016/j.asr.2021.11.024" target="_blank" rel="noopener noreferrer">10.1016/j.asr.2021.11.024</a></td><td><span class="muted">—</span></td><td>Giovanni Vulpetti; Davide Apponi; Xiangyuan Zeng; Christian Circi</td><td>Advances in Space Research</td><td>69</td><td>2022</td><td>1256</td><td><span class="muted">—</span></td></tr><tr><td><a href="https://doi.org/10.1016/j.asr.2020.07.016" target="_blank" rel="noopener noreferrer">10.1016/j.asr.2020.07.016</a></td><td><span class="muted">—</span></td><td>Giovanni Vulpetti; Davide Apponi; Xiangyuan Zeng; Christian Circi</td><td>Advances in Space Research</td><td>67</td><td>2021</td><td>2669-2687</td><td>This paper regards small/midsize square sails on which a field of wrinkles appears owing to the necessary sail-membrane operations before and during the deployment. We collected a large amount of data in our laboratory. Many ten thousands of measurements had been statistically processed for characterizing some sail’s sampled membranes consisting of aluminized-polyimide layers (2.5+0.1)μm thin, and loaded at vertices. Such samples have exhibited area and orientation alterations, as a whole, which can affect the propulsive acceleration of a sailcraft. Wrinkled-sail orientation has been given a thrust-specialized meaning for trajectory computation. Three-dimensional heliocentric minimum-time orbit transfer between Earth and Mercury orbits had been investigated. This had resulted in wrinkled-sail sailcraft moving on trajectories remarkably different from those ones of the corresponding ideal unwrinkled-sail sailcraft. Nevertheless, at least in the current framework, the most important result is that sail-wrinkled sailcraft’s interplanetary trajectories could be optimized without resorting to stochastic differential equations.</td></tr><tr><td><a href="https://doi.org/10.1016/j.actaastro.2017.07.042" target="_blank" rel="noopener noreferrer">10.1016/j.actaastro.2017.07.042</a></td><td><span class="muted">—</span></td><td>Giovanni Vulpetti; Christian Circi; Tommaso Pino</td><td>Acta Astronautica</td><td>140</td><td>2017</td><td>113-125</td><td>A preliminary investigation of the early warning of solar storms caused by Coronal Mass Ejection has been carried out. A long warning time could be obtained with a sailcraft synchronous with the Earth-Moon barycenter, and stationed well below the L1 point. In this paper, the theory of heliocentric synchronous sailcraft is set up, its perturbed orbit is analyzed, and a potential solution capable of providing an annual synchrony is carried out. A simple analysis of the response from a low-mass electrochromic actuator for the realization of station-keeping attitude maneuvers is put forwards, and an example of propellantless re-orientation maneuver is studied.</td></tr><tr><td><a href="https://doi.org/10.1007/978-94-007-4777-7" target="_blank" rel="noopener noreferrer">10.1007/978-94-007-4777-7</a></td><td><span class="muted">—</span></td><td>Giovanni Vulpetti</td><td>Fast Solar Sailing: Astrodynamics of Special Sailcraft Trajectories</td><td><span class="muted">—</span></td><td>2013</td><td>E1–E2</td><td><span class="muted">—</span></td></tr><tr><td><a href="https://doi.org/10.1016/j.actaastro.2010.01.010" target="_blank" rel="noopener noreferrer">10.1016/j.actaastro.2010.01.010</a></td><td><span class="muted">—</span></td><td>Giovanni Vulpetti</td><td>Acta Astronautica</td><td>68</td><td>2011</td><td>644-650</td><td>This paper is the second one of a research line whereupon the variations of the total solar irradiance are explicitly included in a large high-precision computer code for sailcraft trajectory optimization. Sailcraft-Mars rendezvous has been chosen for studying such effects. It turns out that irradiance-fluctuation perturbations are large in this trajectory type.</td></tr><tr><td><a href="https://doi.org/10.1016/j.actaastro.2010.02.004" target="_blank" rel="noopener noreferrer">10.1016/j.actaastro.2010.02.004</a></td><td><span class="muted">—</span></td><td>Giovanni Vulpetti</td><td>Acta Astronautica</td><td>67</td><td>2010</td><td>279-283</td><td>Solar photon sailing is based on the radiation pressure of the total solar irradiance (TSI). This note analyzes the effects of the actual irradiance on low-eccentricity orbits as an introductory work to much more complex cases such as sailcraft-Mars rendezvous. Two special orbits are considered: (1) a circular warning orbit and (2) a transfer orbit between Earth and Mars. It turns out that TSI fluctuations can cause large perturbations to these types of solar-sail trajectory.</td></tr><tr><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td>G. Vulpetti; S. Santoli; G. Mocci</td><td>JBIS - Journal of the British Interplanetary Society</td><td>61</td><td>2008</td><td>284-289</td><td><span class="muted">—</span></td></tr><tr><td><a href="https://doi.org/10.1016/S0094-5765(99)00038-7" target="_blank" rel="noopener noreferrer">10.1016/S0094-5765(99)00038-7</a></td><td><span class="muted">—</span></td><td>G. Vulpetti; S. Scaglione</td><td>Acta Astronautica</td><td>44</td><td>1999</td><td>123-132</td><td><span class="muted">—</span></td></tr><tr><td><a href="https://doi.org/10.1038/s41598-018-28133-2" target="_blank" rel="noopener noreferrer">10.1038/s41598-018-28133-2</a></td><td><span class="muted">—</span></td><td>D.C. Ullery; S. Soleymani; A. Heaton; J. Orphee; L. Johnson; R. Sood; P. Kung; S.M. Kim</td><td>Scientific Reports</td><td>8</td><td>2018</td><td><span class="muted">—</span></td><td><span class="muted">—</span></td></tr><tr><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td>O.L. Starinova; I.V. Chernyakina</td><td>Adv. Astronaut. Sci. Technol.</td><td>1</td><td>2018</td><td>81-85</td><td><span class="muted">—</span></td></tr><tr><td><a href="https://doi.org/10.1016/S0094-5765(99)00041-7" target="_blank" rel="noopener noreferrer">10.1016/S0094-5765(99)00041-7</a></td><td><span class="muted">—</span></td><td>S. Scaglione; G. Vulpetti</td><td>Acta Astronautica</td><td>44</td><td>1999</td><td>147-150</td><td><span class="muted">—</span></td></tr><tr><td><a href="https://doi.org/10.1016/j.asr.2019.02.016" target="_blank" rel="noopener noreferrer">10.1016/j.asr.2019.02.016</a></td><td><span class="muted">—</span></td><td>Tommaso Pino; Christian Circi; Giovanni Vulpetti</td><td>Advances in Space Research</td><td>63</td><td>2019</td><td>3675-3690</td><td>A good model of solar-radiation pressure induced thrust is one of the key points in sailcraft trajectory design. The sail membrane’s local topographic deformations, i.e. wrinkles and creases, are among the main aspects that such a model should include. We have analyzed the influence of wrinkles/creases, as a whole, by measuring the related deformations on small samples of sail membrane, 2.5 μm thick, consisting of CP1 and physical-vapor-deposition Aluminum. Experimental outcomes from our laboratory facility have been processed, statistically investigated, and inserted into the lightness vector formalism. We have used such formalism for accurate sailcraft trajectory computation via a non-ideal reflection sail thrust model. Finally, we computed the deviations of wrinkled-sail sailcraft final orbital states with respect to the no-wrinkle sail final orbital ones for a circular to circular 2D inward transfer. The radii of the orbits are 1 AU and the semi-major axis of Mercury, respectively. It appears that sail wrinkles and creases are no longer negligible in the sailcraft trajectory design.</td></tr><tr><td><a href="https://doi.org/10.2514/1.9054" target="_blank" rel="noopener noreferrer">10.2514/1.9054</a></td><td><span class="muted">—</span></td><td>L. Rios-Reyes; D.J. Scheeres</td><td>Journal of Spacecraft and Rockets</td><td>42</td><td>2005</td><td>182-185</td><td><span class="muted">—</span></td></tr><tr><td><a href="https://doi.org/10.1364/AO.37.005271" target="_blank" rel="noopener noreferrer">10.1364/AO.37.005271</a></td><td><span class="muted">—</span></td><td>Aleksandar D. Raki\&#x27;{c}; Aleksandra B. Djuri\v{s}i\&#x27;{c}; Jovan M. Elazar; Marian L. Majewski</td><td>Appl. Opt.</td><td>37</td><td>1998</td><td>5271–5283</td><td>We present models for the optical functions of 11 metals used asmirrors and contacts in optoelectronic and optical devices: noblemetals (Ag, Au, Cu), aluminum, beryllium, and transition metals(Cr, Ni, Pd, Pt, Ti, W). We used two simple phenomenologicalmodels, the Lorentz--Drude (LD) and the Brendel--Bormann (BB),to interpret both the free-electron and the interband parts of thedielectric response of metals in a wide spectral range from 0.1 to 6eV. Our results show that the BB model was needed to describeappropriately the interband absorption in noble metals, while for Al,Be, and the transition metals both models exhibit good agreement withthe experimental data. A comparison with measurements on surfacenormal structures confirmed that the reflectance and the phase changeon reflection from semiconductor--metal interfaces (including thecase of metallic multilayers) can be accurately described by use ofthe proposed models for the optical functions of metallic films and thematrix method for multilayer calculations.</td></tr><tr><td><a href="https://doi.org/10.1364/AO.34.004755" target="_blank" rel="noopener noreferrer">10.1364/AO.34.004755</a></td><td><span class="muted">—</span></td><td>Aleksandar D. Raki\&#x27;{c}</td><td>Appl. Opt.</td><td>34</td><td>1995</td><td>4755–4767</td><td>Optical and electron-energy-loss data for evaporated-aluminum films have been critically analyzed and used in an iterative, self-consistent algorithm that represents a combination of the Kramers--Kronig analysis and the semiquantum-model application. The novel values of the intrinsic optical functions of aluminum have been determined in a wide spectral range from 200 $\mu$m (6.2 meV) to 0.12 nm (10 keV). These functions are in accordance with recent calculations by Lee and Chang \[Phys. Rev. B 49, 2362 (1994)\], with dc conductivity measurements, and are in good agreement with both peak positions and line widths obtained from electron-energy-loss experiments. The results are examined for internal consistency by inertial and f-sum rules.</td></tr>
+      <tr><td class="c-doi" data-full="10.1016/j.asr.2020.06.017" title="10.1016/j.asr.2020.06.017"><a href="https://doi.org/10.1016/j.asr.2020.06.017" target="_blank" rel="noopener noreferrer">10.1016/j.asr.2020.06.017</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Miroslav A. Rozhkov, Olga L. Starinova, Irina V. Chernyakina" title="Miroslav A. Rozhkov, Olga L. Starinova, Irina V. Chernyakina">Miroslav A. Rozhkov et al.</td><td class="c-title" data-full="Influence of optical parameters on a solar sail motion" title="Influence of optical parameters on a solar sail motion">Influence of optical parameters on a solar sail motion</td><td class="c-journal" data-full="Advances in Space Research" title="Advances in Space Research">Advances in Space Research</td><td class="c-volume" data-full="67" title="67">67</td><td class="c-year" data-full="2021" title="2021">2021</td><td class="c-pages" data-full="2757-2766" title="2757-2766">2757-2766</td></tr><tr><td class="c-doi" data-full="10.1364/JOSAA.35.001261" title="10.1364/JOSAA.35.001261"><a href="https://doi.org/10.1364/JOSAA.35.001261" target="_blank" rel="noopener noreferrer">10.1364/JOSAA.35.001261</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="D. Zola, C. Circi, G. Vulpetti, S. Scaglione" title="D. Zola, C. Circi, G. Vulpetti, S. Scaglione">D. Zola et al.</td><td class="c-title" data-full="Photon momentum change of quasi-smooth solar sails" title="Photon momentum change of quasi-smooth solar sails">Photon momentum change of quasi-smooth solar sails</td><td class="c-journal" data-full="J. Opt. Soc. Am. A" title="J. Opt. Soc. Am. A">J. Opt. Soc. Am. A</td><td class="c-volume" data-full="35" title="35">35</td><td class="c-year" data-full="2018" title="2018">2018</td><td class="c-pages" data-full="1261–1271" title="1261–1271">1261–1271</td></tr><tr><td class="c-doi" data-full="" title=""><span class="muted">—</span></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Jerome L Wright" title="Jerome L Wright">Jerome L Wright</td><td class="c-title" data-full="Space sailing" title="Space sailing">Space sailing</td><td class="c-journal" data-full="" title=""><span class="muted">—</span></td><td class="c-volume" data-full="" title=""><span class="muted">—</span></td><td class="c-year" data-full="1992" title="1992">1992</td><td class="c-pages" data-full="" title=""><span class="muted">—</span></td></tr><tr><td class="c-doi" data-full="10.1029/2008GL036373" title="10.1029/2008GL036373"><a href="https://doi.org/10.1029/2008GL036373" target="_blank" rel="noopener noreferrer">10.1029/2008GL036373</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Thomas N. Woods, Phillip C. Chamberlin, Jerald W. Harder, Rachel A. Hock, Martin Snow, Francis G. Eparvier, Juan Fontenla, William E. McClintock, Erik C. Richard" title="Thomas N. Woods, Phillip C. Chamberlin, Jerald W. Harder, Rachel A. Hock, Martin Snow, Francis G. Eparvier, Juan Fontenla, William E. McClintock, Erik C. Richard">Thomas N. Woods et al.</td><td class="c-title" data-full="Solar Irradiance Reference Spectra (SIRS) for the 2008 Whole Heliosphere Interval (WHI)" title="Solar Irradiance Reference Spectra (SIRS) for the 2008 Whole Heliosphere Interval (WHI)">Solar Irradiance Reference Spectra (SIRS) for the 2008 Whole Heliosphere Interval (WHI)</td><td class="c-journal" data-full="Geophysical Research Letters" title="Geophysical Research Letters">Geophysical Research Letters</td><td class="c-volume" data-full="36" title="36">36</td><td class="c-year" data-full="2009" title="2009">2009</td><td class="c-pages" data-full="L01101-1:5" title="L01101-1:5">L01101-1:5</td></tr><tr><td class="c-doi" data-full="10.1063/1.3243762" title="10.1063/1.3243762"><a href="https://doi.org/10.1063/1.3243762" target="_blank" rel="noopener noreferrer">10.1063/1.3243762</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Wolfgang S. M. Werner, Kathrin Glantschnig, Claudia Ambrosch-Draxl" title="Wolfgang S. M. Werner, Kathrin Glantschnig, Claudia Ambrosch-Draxl">Wolfgang S. M. Werner et al.</td><td class="c-title" data-full="Optical Constants and Inelastic Electron-Scattering Data for 17 Elemental Metals" title="Optical Constants and Inelastic Electron-Scattering Data for 17 Elemental Metals">Optical Constants and Inelastic Electron-Scattering Data for 17 Elemental Metals</td><td class="c-journal" data-full="Journal of Physical and Chemical Reference Data" title="Journal of Physical and Chemical Reference Data">Journal of Physical and Chemical Reference Data</td><td class="c-volume" data-full="38" title="38">38</td><td class="c-year" data-full="2009" title="2009">2009</td><td class="c-pages" data-full="1013-1092" title="1013-1092">1013-1092</td></tr><tr><td class="c-doi" data-full="10.2478/s11534-011-0096-2" title="10.2478/s11534-011-0096-2"><a href="https://doi.org/10.2478/s11534-011-0096-2" target="_blank" rel="noopener noreferrer">10.2478/s11534-011-0096-2</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="David Nečas, Petr Klapetek" title="David Nečas, Petr Klapetek">David Nečas et al.</td><td class="c-title" data-full="Gwyddion: an open-source software for {SPM} data analysis" title="Gwyddion: an open-source software for {SPM} data analysis">Gwyddion: an open-source software for {SPM} data analysis</td><td class="c-journal" data-full="Central European Journal of Physics" title="Central European Journal of Physics">Central European Journal of Physics</td><td class="c-volume" data-full="10" title="10">10</td><td class="c-year" data-full="2012" title="2012">2012</td><td class="c-pages" data-full="181-188" title="181-188">181-188</td></tr><tr><td class="c-doi" data-full="10.1016/j.asr.2021.11.024" title="10.1016/j.asr.2021.11.024"><a href="https://doi.org/10.1016/j.asr.2021.11.024" target="_blank" rel="noopener noreferrer">10.1016/j.asr.2021.11.024</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Giovanni Vulpetti, Davide Apponi, Xiangyuan Zeng, Christian Circi" title="Giovanni Vulpetti, Davide Apponi, Xiangyuan Zeng, Christian Circi">Giovanni Vulpetti et al.</td><td class="c-title" data-full="Corrigendum to “Wrinkling analysis of solar-photon sails” [Adv. Space Res. 67(9) (2021) 2669–2687]" title="Corrigendum to “Wrinkling analysis of solar-photon sails” [Adv. Space Res. 67(9) (2021) 2669–2687]">Corrigendum to “Wrinkling analysis of solar-photon sails” [Adv. Space Res. 67(9) (2021) 2669–2687]</td><td class="c-journal" data-full="Advances in Space Research" title="Advances in Space Research">Advances in Space Research</td><td class="c-volume" data-full="69" title="69">69</td><td class="c-year" data-full="2022" title="2022">2022</td><td class="c-pages" data-full="1256" title="1256">1256</td></tr><tr><td class="c-doi" data-full="10.1016/j.asr.2020.07.016" title="10.1016/j.asr.2020.07.016"><a href="https://doi.org/10.1016/j.asr.2020.07.016" target="_blank" rel="noopener noreferrer">10.1016/j.asr.2020.07.016</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Giovanni Vulpetti, Davide Apponi, Xiangyuan Zeng, Christian Circi" title="Giovanni Vulpetti, Davide Apponi, Xiangyuan Zeng, Christian Circi">Giovanni Vulpetti et al.</td><td class="c-title" data-full="Wrinkling analysis of solar-photon sails" title="Wrinkling analysis of solar-photon sails">Wrinkling analysis of solar-photon sails</td><td class="c-journal" data-full="Advances in Space Research" title="Advances in Space Research">Advances in Space Research</td><td class="c-volume" data-full="67" title="67">67</td><td class="c-year" data-full="2021" title="2021">2021</td><td class="c-pages" data-full="2669-2687" title="2669-2687">2669-2687</td></tr><tr><td class="c-doi" data-full="10.1016/j.actaastro.2017.07.042" title="10.1016/j.actaastro.2017.07.042"><a href="https://doi.org/10.1016/j.actaastro.2017.07.042" target="_blank" rel="noopener noreferrer">10.1016/j.actaastro.2017.07.042</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Giovanni Vulpetti, Christian Circi, Tommaso Pino" title="Giovanni Vulpetti, Christian Circi, Tommaso Pino">Giovanni Vulpetti et al.</td><td class="c-title" data-full="Coronal Mass Ejection early-warning mission by solar-photon sailcraft" title="Coronal Mass Ejection early-warning mission by solar-photon sailcraft">Coronal Mass Ejection early-warning mission by solar-photon sailcraft</td><td class="c-journal" data-full="Acta Astronautica" title="Acta Astronautica">Acta Astronautica</td><td class="c-volume" data-full="140" title="140">140</td><td class="c-year" data-full="2017" title="2017">2017</td><td class="c-pages" data-full="113-125" title="113-125">113-125</td></tr><tr><td class="c-doi" data-full="10.1007/978-94-007-4777-7" title="10.1007/978-94-007-4777-7"><a href="https://doi.org/10.1007/978-94-007-4777-7" target="_blank" rel="noopener noreferrer">10.1007/978-94-007-4777-7</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Giovanni Vulpetti" title="Giovanni Vulpetti">Giovanni Vulpetti</td><td class="c-title" data-full="Fast Solar Sailing" title="Fast Solar Sailing">Fast Solar Sailing</td><td class="c-journal" data-full="Fast Solar Sailing: Astrodynamics of Special Sailcraft Trajectories" title="Fast Solar Sailing: Astrodynamics of Special Sailcraft Trajectories">Fast Solar Sailing: Astrodynamics of Special Sailcraft Trajectories</td><td class="c-volume" data-full="" title=""><span class="muted">—</span></td><td class="c-year" data-full="2013" title="2013">2013</td><td class="c-pages" data-full="E1–E2" title="E1–E2">E1–E2</td></tr><tr><td class="c-doi" data-full="10.1016/j.actaastro.2010.01.010" title="10.1016/j.actaastro.2010.01.010"><a href="https://doi.org/10.1016/j.actaastro.2010.01.010" target="_blank" rel="noopener noreferrer">10.1016/j.actaastro.2010.01.010</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Giovanni Vulpetti" title="Giovanni Vulpetti">Giovanni Vulpetti</td><td class="c-title" data-full="Total solar irradiance fluctuation effects on sailcraft-Mars rendezvous" title="Total solar irradiance fluctuation effects on sailcraft-Mars rendezvous">Total solar irradiance fluctuation effects on sailcraft-Mars rendezvous</td><td class="c-journal" data-full="Acta Astronautica" title="Acta Astronautica">Acta Astronautica</td><td class="c-volume" data-full="68" title="68">68</td><td class="c-year" data-full="2011" title="2011">2011</td><td class="c-pages" data-full="644-650" title="644-650">644-650</td></tr><tr><td class="c-doi" data-full="10.1016/j.actaastro.2010.02.004" title="10.1016/j.actaastro.2010.02.004"><a href="https://doi.org/10.1016/j.actaastro.2010.02.004" target="_blank" rel="noopener noreferrer">10.1016/j.actaastro.2010.02.004</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Giovanni Vulpetti" title="Giovanni Vulpetti">Giovanni Vulpetti</td><td class="c-title" data-full="Effect of the total solar irradiance variations on solar-sail low-eccentricity orbits" title="Effect of the total solar irradiance variations on solar-sail low-eccentricity orbits">Effect of the total solar irradiance variations on solar-sail low-eccentricity orbits</td><td class="c-journal" data-full="Acta Astronautica" title="Acta Astronautica">Acta Astronautica</td><td class="c-volume" data-full="67" title="67">67</td><td class="c-year" data-full="2010" title="2010">2010</td><td class="c-pages" data-full="279-283" title="279-283">279-283</td></tr><tr><td class="c-doi" data-full="" title=""><span class="muted">—</span></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="G. Vulpetti, S. Santoli, G. Mocci" title="G. Vulpetti, S. Santoli, G. Mocci">G. Vulpetti et al.</td><td class="c-title" data-full="Preliminary investigation on carbon nanotube membranes for photon solar sails" title="Preliminary investigation on carbon nanotube membranes for photon solar sails">Preliminary investigation on carbon nanotube membranes for photon solar sails</td><td class="c-journal" data-full="JBIS - Journal of the British Interplanetary Society" title="JBIS - Journal of the British Interplanetary Society">JBIS - Journal of the British Interplanetary Society</td><td class="c-volume" data-full="61" title="61">61</td><td class="c-year" data-full="2008" title="2008">2008</td><td class="c-pages" data-full="284-289" title="284-289">284-289</td></tr><tr><td class="c-doi" data-full="10.1016/S0094-5765(99)00038-7" title="10.1016/S0094-5765(99)00038-7"><a href="https://doi.org/10.1016/S0094-5765(99)00038-7" target="_blank" rel="noopener noreferrer">10.1016/S0094-5765(99)00038-7</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="G. Vulpetti, S. Scaglione" title="G. Vulpetti, S. Scaglione">G. Vulpetti et al.</td><td class="c-title" data-full="Aurora project: estimation of the optical sail parameters" title="Aurora project: estimation of the optical sail parameters">Aurora project: estimation of the optical sail parameters</td><td class="c-journal" data-full="Acta Astronautica" title="Acta Astronautica">Acta Astronautica</td><td class="c-volume" data-full="44" title="44">44</td><td class="c-year" data-full="1999" title="1999">1999</td><td class="c-pages" data-full="123-132" title="123-132">123-132</td></tr><tr><td class="c-doi" data-full="10.1038/s41598-018-28133-2" title="10.1038/s41598-018-28133-2"><a href="https://doi.org/10.1038/s41598-018-28133-2" target="_blank" rel="noopener noreferrer">10.1038/s41598-018-28133-2</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="D.C. Ullery, S. Soleymani, A. Heaton, J. Orphee, L. Johnson, R. Sood, P. Kung, S.M. Kim" title="D.C. Ullery, S. Soleymani, A. Heaton, J. Orphee, L. Johnson, R. Sood, P. Kung, S.M. Kim">D.C. Ullery et al.</td><td class="c-title" data-full="Strong Solar Radiation Forces from Anomalously Reflecting Metasurfaces for Solar Sail Attitude Control" title="Strong Solar Radiation Forces from Anomalously Reflecting Metasurfaces for Solar Sail Attitude Control">Strong Solar Radiation Forces from Anomalously Reflecting Metasurfaces for Solar Sail Attitude Control</td><td class="c-journal" data-full="Scientific Reports" title="Scientific Reports">Scientific Reports</td><td class="c-volume" data-full="8" title="8">8</td><td class="c-year" data-full="2018" title="2018">2018</td><td class="c-pages" data-full="" title=""><span class="muted">—</span></td></tr><tr><td class="c-doi" data-full="" title=""><span class="muted">—</span></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="O.L. Starinova, I.V. Chernyakina" title="O.L. Starinova, I.V. Chernyakina">O.L. Starinova et al.</td><td class="c-title" data-full="The mission&#x27;s design of a solar sail spacecraft to the nearest circumsolar space, based on local-optimal control laws" title="The mission&#x27;s design of a solar sail spacecraft to the nearest circumsolar space, based on local-optimal control laws">The mission&#x27;s design of a solar sail spacecraft to the nearest circumsolar space, based on local-optimal control laws</td><td class="c-journal" data-full="Adv. Astronaut. Sci. Technol." title="Adv. Astronaut. Sci. Technol.">Adv. Astronaut. Sci. Technol.</td><td class="c-volume" data-full="1" title="1">1</td><td class="c-year" data-full="2018" title="2018">2018</td><td class="c-pages" data-full="81-85" title="81-85">81-85</td></tr><tr><td class="c-doi" data-full="10.1016/S0094-5765(99)00041-7" title="10.1016/S0094-5765(99)00041-7"><a href="https://doi.org/10.1016/S0094-5765(99)00041-7" target="_blank" rel="noopener noreferrer">10.1016/S0094-5765(99)00041-7</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="S. Scaglione, G. Vulpetti" title="S. Scaglione, G. Vulpetti">S. Scaglione et al.</td><td class="c-title" data-full="Aurora project: removal of plastic substrate to obtain an all-metal solar sail" title="Aurora project: removal of plastic substrate to obtain an all-metal solar sail">Aurora project: removal of plastic substrate to obtain an all-metal solar sail</td><td class="c-journal" data-full="Acta Astronautica" title="Acta Astronautica">Acta Astronautica</td><td class="c-volume" data-full="44" title="44">44</td><td class="c-year" data-full="1999" title="1999">1999</td><td class="c-pages" data-full="147-150" title="147-150">147-150</td></tr><tr><td class="c-doi" data-full="10.1016/j.asr.2019.02.016" title="10.1016/j.asr.2019.02.016"><a href="https://doi.org/10.1016/j.asr.2019.02.016" target="_blank" rel="noopener noreferrer">10.1016/j.asr.2019.02.016</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Tommaso Pino, Christian Circi, Giovanni Vulpetti" title="Tommaso Pino, Christian Circi, Giovanni Vulpetti">Tommaso Pino et al.</td><td class="c-title" data-full="Wrinkling analysis for small solar-photon sails: An experimental and analytic approach for trajectory design" title="Wrinkling analysis for small solar-photon sails: An experimental and analytic approach for trajectory design">Wrinkling analysis for small solar-photon sails: An experimental and analytic approach for trajectory design</td><td class="c-journal" data-full="Advances in Space Research" title="Advances in Space Research">Advances in Space Research</td><td class="c-volume" data-full="63" title="63">63</td><td class="c-year" data-full="2019" title="2019">2019</td><td class="c-pages" data-full="3675-3690" title="3675-3690">3675-3690</td></tr><tr><td class="c-doi" data-full="10.2514/1.9054" title="10.2514/1.9054"><a href="https://doi.org/10.2514/1.9054" target="_blank" rel="noopener noreferrer">10.2514/1.9054</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="L. Rios-Reyes, D.J. Scheeres" title="L. Rios-Reyes, D.J. Scheeres">L. Rios-Reyes et al.</td><td class="c-title" data-full="Generalized model for solar sails" title="Generalized model for solar sails">Generalized model for solar sails</td><td class="c-journal" data-full="Journal of Spacecraft and Rockets" title="Journal of Spacecraft and Rockets">Journal of Spacecraft and Rockets</td><td class="c-volume" data-full="42" title="42">42</td><td class="c-year" data-full="2005" title="2005">2005</td><td class="c-pages" data-full="182-185" title="182-185">182-185</td></tr><tr><td class="c-doi" data-full="10.1364/AO.37.005271" title="10.1364/AO.37.005271"><a href="https://doi.org/10.1364/AO.37.005271" target="_blank" rel="noopener noreferrer">10.1364/AO.37.005271</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Aleksandar D. Raki\&#x27;{c}, Aleksandra B. Djuri\v{s}i\&#x27;{c}, Jovan M. Elazar, Marian L. Majewski" title="Aleksandar D. Raki\&#x27;{c}, Aleksandra B. Djuri\v{s}i\&#x27;{c}, Jovan M. Elazar, Marian L. Majewski">Aleksandar D. Raki\&#x27;{c} et al.</td><td class="c-title" data-full="Optical properties of metallic films for vertical-cavity optoelectronic devices" title="Optical properties of metallic films for vertical-cavity optoelectronic devices">Optical properties of metallic films for vertical-cavity optoelectronic devices</td><td class="c-journal" data-full="Appl. Opt." title="Appl. Opt.">Appl. Opt.</td><td class="c-volume" data-full="37" title="37">37</td><td class="c-year" data-full="1998" title="1998">1998</td><td class="c-pages" data-full="5271–5283" title="5271–5283">5271–5283</td></tr><tr><td class="c-doi" data-full="10.1364/AO.34.004755" title="10.1364/AO.34.004755"><a href="https://doi.org/10.1364/AO.34.004755" target="_blank" rel="noopener noreferrer">10.1364/AO.34.004755</a></td><td class="c-pdf" data-full="" title=""><span class="muted">—</span></td><td class="c-authors" data-full="Aleksandar D. Raki\&#x27;{c}" title="Aleksandar D. Raki\&#x27;{c}">Aleksandar D. Raki\&#x27;{c}</td><td class="c-title" data-full="Algorithm for the determination of intrinsic optical constants of metal films: application to aluminum" title="Algorithm for the determination of intrinsic optical constants of metal films: application to aluminum">Algorithm for the determination of intrinsic optical constants of metal films: application to aluminum</td><td class="c-journal" data-full="Appl. Opt." title="Appl. Opt.">Appl. Opt.</td><td class="c-volume" data-full="34" title="34">34</td><td class="c-year" data-full="1995" title="1995">1995</td><td class="c-pages" data-full="4755–4767" title="4755–4767">4755–4767</td></tr>
     </tbody>
   </table>
+
+  <div id="tip" role="tooltip" aria-hidden="true"></div>
 
 <script>
 (function() {
@@ -58,7 +112,9 @@
   const count = document.getElementById('count');
   const headers = Array.from(t.tHead.rows[0].cells);
 
-  // Stato ordinamento: { colIndex, dir: 1 asc | -1 desc }
+  const tip = document.getElementById('tip');
+  let tipVisible = false;
+
   const sortState = { colIndex: null, dir: 1 };
 
   function normalize(s) {
@@ -79,12 +135,10 @@
   }
 
   function cellValue(row, colIndex) {
-    // textContent è più stabile di innerText per link e span "—"
     return (row.cells[colIndex]?.textContent || '').trim();
   }
 
   function parseNum(s) {
-    // estrae il primo intero (utile per year, volumi "12", "12A", ecc.)
     const m = String(s).match(/-?\d+/);
     return m ? parseInt(m[0], 10) : Number.NEGATIVE_INFINITY;
   }
@@ -99,7 +153,7 @@
   function setIndicator(th, dir) {
     const ind = th.querySelector('.sort-ind');
     if (!ind) return;
-    ind.textContent = dir === 1 ? '▲' : '▼';
+    ind.textContent = (dir === 1) ? '▲' : '▼';
   }
 
   function sortBy(colIndex, type, dir) {
@@ -116,15 +170,11 @@
         return (an < bn ? -1 : 1) * dir;
       }
 
-      // testo: localeCompare con numeric aiuta per stringhe tipo "Vol 9" vs "Vol 10"
       const cmp = av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
       return cmp * dir;
     });
 
-    // riattacca in ordine
     for (const r of rows) tbody.appendChild(r);
-
-    // riapplica filtro per mantenere conteggio coerente
     applyFilter();
   }
 
@@ -133,14 +183,12 @@
 
     th.addEventListener('click', () => {
       const type = th.dataset.type || 'text';
-
       if (sortState.colIndex === idx) {
-        sortState.dir *= -1; // toggle
+        sortState.dir *= -1;
       } else {
         sortState.colIndex = idx;
         sortState.dir = 1;
       }
-
       clearIndicators();
       setIndicator(th, sortState.dir);
       sortBy(idx, type, sortState.dir);
@@ -148,6 +196,96 @@
   });
 
   q.addEventListener('input', applyFilter);
+
+  // ---- Tooltip hover ----
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function headerLabelForCell(td) {
+    const idx = td.cellIndex;
+    const th = headers[idx];
+    return th ? (th.textContent || '').replace(/[▲▼]/g,'').trim() : '';
+  }
+
+  function showTip(text, label, x, y) {
+    if (!text) return;
+    const safeText = escapeHtml(text);
+    const safeLabel = escapeHtml(label || '');
+    tip.innerHTML = label ? ('<span class="k">' + safeLabel + '</span>' + safeText) : safeText;
+    tip.style.display = 'block';
+    tip.setAttribute('aria-hidden', 'false');
+    tipVisible = true;
+    moveTip(x, y);
+  }
+
+  function hideTip() {
+    tip.style.display = 'none';
+    tip.setAttribute('aria-hidden', 'true');
+    tipVisible = false;
+  }
+
+  function moveTip(x, y) {
+    if (!tipVisible) return;
+    const pad = 14;
+    const rect = tip.getBoundingClientRect();
+    let tx = x + pad;
+    let ty = y + pad;
+
+    if (tx + rect.width > window.innerWidth - 8) tx = window.innerWidth - rect.width - 8;
+    if (ty + rect.height > window.innerHeight - 8) ty = y - rect.height - pad;
+
+    tip.style.left = Math.max(8, tx) + 'px';
+    tip.style.top  = Math.max(8, ty) + 'px';
+  }
+
+  t.addEventListener('mousemove', (ev) => {
+    if (!tipVisible) return;
+    moveTip(ev.clientX, ev.clientY);
+  });
+
+  t.addEventListener('mouseover', (ev) => {
+    const td = ev.target.closest('td');
+    if (!td) return;
+
+    const full = td.getAttribute('data-full') || '';
+    const label = headerLabelForCell(td);
+
+    // Regola: per la colonna Autori mostra SEMPRE se full è presente e diverso dal testo mostrato
+    // (e in generale mostra se è troncata o lunga)
+    const shown = (td.textContent || '').trim();
+    const isAuthorsCol = (label.toLowerCase() === 'autori');
+
+    const isTruncated = td.scrollWidth > td.clientWidth + 2;
+    const isLong = full.length > 40;
+    const isDifferent = full && (full.trim() !== shown);
+
+    if (full && (isAuthorsCol ? isDifferent : (isTruncated || isLong))) {
+      showTip(full, label, ev.clientX, ev.clientY);
+    }
+  });
+
+  t.addEventListener('mouseout', (ev) => {
+    const related = ev.relatedTarget;
+    if (!related || !t.contains(related)) {
+      hideTip();
+      return;
+    }
+    const fromTd = ev.target.closest && ev.target.closest('td');
+    const toTd = related.closest && related.closest('td');
+    if (fromTd && toTd && fromTd === toTd) return;
+    hideTip();
+  });
+
+  window.addEventListener('scroll', () => {
+    hideTip();
+  }, { passive: true });
+
   applyFilter();
 })();
 </script>

@@ -1,39 +1,36 @@
-# 📚 bib2tab
+# bib2tab
 
-`bib2tab.py` is a Python script that reads a `.bib` (BibTeX) file
-and generates an interactive HTML page containing a sortable and
-filterable table with key bibliographic metadata.
+A lightweight Python tool that converts a `.bib` (BibTeX) file into a
+clean, compact, sortable HTML table for browsing in your web browser.
 
-The generated page can optionally be opened automatically in your web
-browser.
+Generated on: 2026-02-18
 
 ------------------------------------------------------------------------
 
 ## ✨ Features
 
--   Full parsing of `.bib` files
--   Automatic extraction of:
-    -   DOI (even if embedded in URL or notes)
-    -   PDF link (local or remote)
-    -   Authors (properly formatted)
-    -   Journal / Proceedings
-    -   Volume
-    -   Year
-    -   Pages
-    -   Abstract
--   HTML output with:
-    -   Click-to-sort columns
-    -   Real-time text filtering
-    -   Dynamic visible row counter
-    -   Clean, dependency-free JavaScript interface
+-   ✅ One article per single row (no multi-line rows)
+-   ✅ Compact layout with ellipsis truncation
+-   ✅ Custom hover tooltip showing full content
+-   ✅ Authors column shows:
+    -   First author only
+    -   "et al." if additional co-authors exist
+    -   Full author list appears on mouse hover
+-   ✅ DOI clickable link
+-   ✅ PDF link detection (local or URL)
+-   ✅ Sortable columns
+-   ✅ Live filtering search bar
+-   ✅ No external JS/CSS dependencies
+-   ✅ Fully self-contained HTML output
 
 ------------------------------------------------------------------------
 
 ## 📦 Requirements
 
-Python ≥ 3.9
+-   Python 3.8+
+-   `bibtexparser`
 
-Required library:
+Install dependency:
 
 ``` bash
 pip install bibtexparser
@@ -43,140 +40,81 @@ pip install bibtexparser
 
 ## 🚀 Usage
 
-### Basic command
+Basic usage:
 
 ``` bash
-python bib2tab.py /path/to/your/file.bib
+python bib2tab.py references.bib
 ```
 
-This generates an HTML file with the same name as the `.bib` file and
-opens it in your browser.
+This generates:
 
-------------------------------------------------------------------------
+    references.html
 
-### Specify output file
+and opens it automatically in your browser.
+
+Optional arguments:
 
 ``` bash
-python bib2tab.py refs.bib -o output.html
+python bib2tab.py references.bib -o output.html --no-open
 ```
 
-------------------------------------------------------------------------
-
-### Do not open browser automatically
-
-``` bash
-python bib2tab.py refs.bib --no-open
-```
+-   `-o` → specify output file
+-   `--no-open` → do not auto-open browser
 
 ------------------------------------------------------------------------
 
-## 📄 HTML Output
+## 📊 Output Columns
 
-The generated page includes:
-
--   Search field filtering across:
-    -   Authors
-    -   Journal
-    -   Year
-    -   DOI
-    -   Abstract
--   Clickable sorting on each column
--   Visual indicators ▲ / ▼
--   Clickable DOI links
--   Clickable PDF links (local files converted to URI)
+  Column                  Description
+  ----------------------- -------------------------------------------------
+  DOI                     Clickable DOI link
+  PDF                     Direct PDF link if available
+  Authors                 First author + "et al." (hover shows full list)
+  Title                   Article title
+  Journal / Proceedings   Publication venue
+  Volume                  Volume number
+  Year                    Publication year
+  Pages                   Page range
 
 ------------------------------------------------------------------------
 
-## 🧠 Extraction Logic
+## 🖱 Hover Behavior
 
-### DOI
-
-Extracted from: - `doi` - Or detected inside: - `url` - `note` -
-`howpublished` - `annote`
-
-Automatic normalization removes `https://doi.org/` if present.
+-   Hover over truncated cells to see full content.
+-   Hover over the **Authors** column to see the complete author list.
 
 ------------------------------------------------------------------------
 
-### PDF
+## 🧠 Design Philosophy
 
-Searched in priority order:
+The tool is optimized for:
 
--   `pdf`
--   `fulltext`
--   `link`
--   `url` (if containing `.pdf`)
--   `file` (Zotero-style entries supported)
+-   Fast visual scanning
+-   Compact bibliography browsing
+-   Large `.bib` files
+-   Zero visual clutter
+-   No vertical row expansion
 
-Supports: - HTTP/HTTPS URLs - Relative or absolute local file paths
-
-------------------------------------------------------------------------
-
-### Authors
-
--   Parses `author` field
--   Supports:
-    -   `Last, First`
-    -   `First Last`
--   Output separated by semicolons (`;`)
+All entries remain strictly on a single line.
 
 ------------------------------------------------------------------------
 
-## 🗂 Code Structure
+## 📁 Project Structure
 
--   `load_bib_entries()` → BibTeX parsing
--   `extract_*()` → field extraction helpers
--   `build_rows()` → table row preparation
--   `render_html()` → HTML generation
--   `main()` → CLI handling and orchestration
+    bib2tab.py
+    README.md
 
-------------------------------------------------------------------------
-
-## 🛠 Common Issue
-
-### NameError in render_html
-
-If you encounter:
-
-    NameError: name 'colIndex' is not defined
-
-This happens because `{ colIndex }` inside a Python f-string is
-interpreted as a Python variable.
-
-Fix by escaping braces:
-
-``` javascript
-{{ colIndex }}
-```
-
-In f-strings, literal braces must be doubled.
+The generated HTML file is fully standalone and can be hosted anywhere.
 
 ------------------------------------------------------------------------
 
-## 📈 Output Columns
+## 📝 License
 
-  DOI   PDF   Authors   Journal   Volume   Year   Pages   Abstract
-  ----- ----- --------- --------- -------- ------ ------- ----------
-
-All columns are sortable by clicking their headers.
+MIT License (recommended --- adjust if needed)
 
 ------------------------------------------------------------------------
 
-## 🔐 Security
+## 👤 Author
 
--   Automatic HTML escaping to prevent injection
--   Links use `rel="noopener noreferrer"`
+Created for academic bibliography browsing and research workflows.
 
-------------------------------------------------------------------------
-
-## 📌 Notes
-
--   Compatible with standard BibTeX
--   Works offline (except for external DOI/PDF links)
--   Filtering and sorting handled entirely client-side
-
-------------------------------------------------------------------------
-
-## 📜 License
-
-Free for personal and academic use.
