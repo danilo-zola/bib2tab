@@ -16,3 +16,4 @@ pip install -r requirements.txt
 source venv/bin/activate
 python bib2html.py prova.bib
 deactivate
+# bib2tab
