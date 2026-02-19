@@ -88,19 +88,25 @@ def extract_doi(entry: Dict[str, Any]) -> Optional[str]:
 
 def split_authors(author_field: str) -> List[str]:
     """
-    Split basato su ' and ' (standard BibTeX). Converte anche "Cognome, Nome" -> "Nome Cognome".
+    Split basato su ' and ' (standard BibTeX).
+    Restituisce SEMPRE autori nel formato "Cognome Nome".
+    - "Cognome, Nome" -> "Cognome Nome"
+    - "Nome Cognome"  -> "Cognome Nome" (assumendo ultimo token = cognome)
     """
     parts = [a.strip() for a in author_field.split(" and ") if a.strip()]
     pretty: List[str] = []
     for a in parts:
         if "," in a:
-            chunks = [c.strip() for c in a.split(",", 1)]
-            if len(chunks) == 2 and chunks[1]:
-                pretty.append(f"{chunks[1]} {chunks[0]}")
+            surname, name = [c.strip() for c in a.split(",", 1)]
+            pretty.append(f"{surname} {name}".strip())
+        else:
+            tokens = a.split()
+            if len(tokens) >= 2:
+                surname = tokens[-1]
+                name = " ".join(tokens[:-1])
+                pretty.append(f"{surname} {name}".strip())
             else:
                 pretty.append(a)
-        else:
-            pretty.append(a)
     return pretty
 
 
@@ -121,17 +127,17 @@ def extract_authors_list(entry: Dict[str, Any]) -> List[str]:
 
 def authors_compact_and_full(entry: Dict[str, Any]) -> Tuple[str, str]:
     """
+    Restituisce:
     - Compact (mostrato in cella): "Primo Autore" oppure "Primo Autore et al."
     - Full (tooltip): elenco completo separato da virgole
     """
     authors = extract_authors_list(entry)
-
-    full = ", ".join(authors) if authors else ""
     if not authors:
         return "", ""
 
+    full = ", ".join(authors)
     if len(authors) == 1:
-        return authors[0], authors[0]
+        return authors[0], full
 
     return f"{authors[0]} et al.", full
 
@@ -256,6 +262,12 @@ def build_rows(entries: List[Dict[str, Any]], bib_dir: Path) -> List[Dict[str, s
         pdf_html = make_link(pdf[0], pdf[1]) if pdf else ""
 
         authors_compact, authors_full = authors_compact_and_full(e)
+        # Chiave di ordinamento: cognome del primo autore (in minuscolo)
+        authors_list = extract_authors_list(e)
+        authors_sort = ""
+        if authors_list:
+            first_tokens = authors_list[0].split()
+            authors_sort = (first_tokens[0] if first_tokens else "").lower()
 
         title = extract_title(e)
         journal = extract_journal(e)
@@ -283,17 +295,22 @@ def build_rows(entries: List[Dict[str, Any]], bib_dir: Path) -> List[Dict[str, s
                 "volume_full": volume,
                 "year_full": year,
                 "pages_full": pages,
+                "authors_sort": authors_sort,
+
+
             }
         )
     return rows
 
 
 def render_row(r: Dict[str, str]) -> str:
+    authors_html = r["authors"] if r["authors"] else '<span class="muted">—</span>'
+
     return (
         "<tr>"
         + td(r["doi"], r["doi_full"], "c-doi")
         + td(r["pdf"], r["pdf_full"], "c-pdf")
-        + td(r["authors"], r["authors_full"], "c-authors")
+        + f'<td class="c-authors" data-full="{esc(r["authors_full"])}" data-sort="{esc(r.get("authors_sort", ""))}" title="{esc(r["authors_full"])}">{authors_html}</td>'
         + td(r["title"], r["title_full"], "c-title")
         + td(r["journal"], r["journal_full"], "c-journal")
         + td(r["volume"], r["volume_full"], "c-volume")
@@ -442,7 +459,12 @@ def render_html(rows: List[Dict[str, str]], page_title: str) -> str:
   }}
 
   function cellValue(row, colIndex) {{
-    return (row.cells[colIndex]?.textContent || '').trim();
+    const cell = row.cells[colIndex];
+    if (!cell) return '';
+    // Se presente, usa la chiave di ordinamento custom (es. Autori: cognome primo autore)
+    const custom = cell.getAttribute('data-sort');
+    if (custom) return custom;
+    return (cell.textContent || '').trim();
   }}
 
   function parseNum(s) {{
@@ -634,4 +656,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
