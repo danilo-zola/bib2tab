@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-bib2tab.py
+bib2tab_modified.py
 Genera una pagina HTML con tabella compatta (1 riga per record) a partire da un file .bib.
 
 Colonne:
   DOI | PDF | Autori (compatti) | Titolo | Rivista/Proceedings | Volume | Anno | Pagine
 
-Regola PDF (richiesta):
-  - I file PDF si trovano nella stessa directory del file .bib
-  - Il nome del PDF per ogni voce è: <LABEL>.pdf, dove LABEL è la chiave BibTeX (citekey)
-  - Nella colonna "PDF" non si mostra l'URL esplicito, ma un'icona cliccabile che apre il PDF.
+PDF link:
+  - Di default, per ogni voce BibTeX cerca un PDF nella stessa directory del file .bib
+    con nome: <LABEL>.pdf (LABEL = citekey BibTeX)
+  - In modalità "standalone" (default) il link al PDF è un URI locale file://...
+  - In modalità "web app" (es. NiceGUI) puoi passare pdf_base_url a build_rows(...)
+    per generare link HTTP (es. /localpdfs/collection/<LABEL>.pdf), evitando file://.
 
 Requisiti:
   pip install bibtexparser
 
 Uso:
-  python bib2tab.py references.bib
-  python bib2tab.py references.bib -o out.html --no-open
+  python bib2tab_modified.py references.bib
+  python bib2tab_modified.py references.bib -o out.html --no-open
 """
 
 from __future__ import annotations
@@ -201,23 +203,6 @@ def extract_pages(entry: Dict[str, Any]) -> str:
     return p.replace("--", "–")
 
 
-def build_pdf_link_from_citekey(entry: Dict[str, Any], bib_dir: Path) -> Optional[Tuple[str, str]]:
-    """
-    Regola richiesta:
-      pdf_path = <dir_del_bib>/<citekey>.pdf
-    Restituisce (href, tooltip_key) solo se il file esiste.
-    """
-    citekey = get_citekey(entry)
-    if not citekey:
-        return None
-
-    pdf_path = (bib_dir / f"{citekey}.pdf").resolve()
-    if not pdf_path.exists():
-        return None
-
-    return pdf_path.as_uri(), citekey
-
-
 # -----------------------------
 # HTML helpers
 # -----------------------------
@@ -252,21 +237,46 @@ def td(content_html: str, full_text: str, cls: str = "") -> str:
     return f'<td{c} data-full="{esc(safe_full)}" title="{esc(safe_full)}">{content_html}</td>'
 
 
-def build_rows(entries: List[Dict[str, Any]], bib_dir: Path) -> List[Dict[str, str]]:
+# -----------------------------
+# Core: build_rows con pdf_base_url
+# -----------------------------
+def build_rows(
+    entries: List[Dict[str, Any]],
+    bib_dir: Path,
+    pdf_base_url: Optional[str] = None,
+) -> List[Dict[str, str]]:
+    """
+    Costruisce le righe per la tabella.
+
+    pdf_base_url:
+      - None (default): genera link PDF come file://... (pdf_path.resolve().as_uri())
+      - stringa (es. "/localpdfs/collection" o "https://host/localpdfs/collection"):
+          genera link PDF come: <pdf_base_url>/<citekey>.pdf
+
+    Nota: anche con pdf_base_url, il PDF viene linkato solo se il file esiste su disco
+    (bib_dir/<citekey>.pdf). Questo evita link "morti".
+    """
     rows: List[Dict[str, str]] = []
+    base = (pdf_base_url.rstrip("/") if pdf_base_url else None)
+
     for e in entries:
         doi_raw = extract_doi(e) or ""
         doi_html = make_link(f"https://doi.org/{doi_raw}", doi_raw) if doi_raw else ""
 
-        # ---- PDF: usa la regola <citekey>.pdf nella directory del .bib
-        pdf = build_pdf_link_from_citekey(e, bib_dir)
-        if pdf:
-            pdf_href, pdf_key = pdf
-            pdf_html = make_pdf_icon_link(pdf_href, f"Apri PDF: {pdf_key}.pdf")
-            pdf_full = f"{pdf_key}.pdf"
-        else:
-            pdf_html = ""
-            pdf_full = ""
+        # ---- PDF: <citekey>.pdf nella directory del .bib
+        pdf_html = ""
+        pdf_full = ""
+
+        citekey = get_citekey(e)
+        if citekey:
+            pdf_path = (bib_dir / f"{citekey}.pdf")
+            if pdf_path.exists():
+                if base:
+                    href = f"{base}/{citekey}.pdf"
+                else:
+                    href = pdf_path.resolve().as_uri()
+                pdf_html = make_pdf_icon_link(href, f"Apri PDF: {citekey}.pdf")
+                pdf_full = f"{citekey}.pdf"
 
         authors_compact, authors_full = authors_compact_and_full(e)
 
@@ -479,7 +489,6 @@ def render_html(rows: List[Dict[str, str]], page_title: str) -> str:
   function cellValue(row, colIndex) {{
     const cell = row.cells[colIndex];
     if (!cell) return '';
-    // Se presente, usa la chiave di ordinamento custom (es. Autori: cognome primo autore)
     const custom = cell.getAttribute('data-sort');
     if (custom) return custom;
     return (cell.textContent || '').trim();
@@ -544,7 +553,6 @@ def render_html(rows: List[Dict[str, str]], page_title: str) -> str:
 
   q.addEventListener('input', applyFilter);
 
-  // ---- Tooltip hover ----
   function escapeHtml(s) {{
     return String(s)
       .replaceAll('&', '&amp;')
@@ -603,8 +611,6 @@ def render_html(rows: List[Dict[str, str]], page_title: str) -> str:
     const full = td.getAttribute('data-full') || '';
     const label = headerLabelForCell(td);
 
-    // Regola: per la colonna Autori mostra SEMPRE se full è presente e diverso dal testo mostrato
-    // (e in generale mostra se è troncata o lunga)
     const shown = (td.textContent || '').trim();
     const isAuthorsCol = (label.toLowerCase() === 'autori');
 
@@ -641,9 +647,6 @@ def render_html(rows: List[Dict[str, str]], page_title: str) -> str:
 """
 
 
-# -----------------------------
-# CLI
-# -----------------------------
 def main() -> int:
     ap = argparse.ArgumentParser(description="Genera una tabella HTML compatta da un file .bib e la apre nel browser.")
     ap.add_argument("bib", type=str, help="Percorso al file .bib")
