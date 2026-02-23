@@ -7,6 +7,11 @@ Genera una pagina HTML con tabella compatta (1 riga per record) a partire da un 
 Colonne:
   DOI | PDF | Autori (compatti) | Titolo | Rivista/Proceedings | Volume | Anno | Pagine
 
+Regola PDF (richiesta):
+  - I file PDF si trovano nella stessa directory del file .bib
+  - Il nome del PDF per ogni voce è: <LABEL>.pdf, dove LABEL è la chiave BibTeX (citekey)
+  - Nella colonna "PDF" non si mostra l'URL esplicito, ma un'icona cliccabile che apre il PDF.
+
 Requisiti:
   pip install bibtexparser
 
@@ -66,6 +71,19 @@ def get_field(entry: Dict[str, Any], *names: str) -> Optional[str]:
         if s:
             return s
     return None
+
+
+def get_citekey(entry: Dict[str, Any]) -> str:
+    """
+    Restituisce la label/citekey BibTeX della voce.
+    Con bibtexparser la chiave è tipicamente in entry["ID"].
+    """
+    for k in ("ID", "id", "key", "citekey"):
+        v = entry.get(k)
+        if v:
+            return str(v).strip()
+    v = get_field(entry, "citation_key")
+    return (v or "").strip()
 
 
 def extract_doi(entry: Dict[str, Any]) -> Optional[str]:
@@ -183,49 +201,21 @@ def extract_pages(entry: Dict[str, Any]) -> str:
     return p.replace("--", "–")
 
 
-def is_probable_url(s: str) -> bool:
-    return s.lower().startswith(("http://", "https://"))
+def build_pdf_link_from_citekey(entry: Dict[str, Any], bib_dir: Path) -> Optional[Tuple[str, str]]:
+    """
+    Regola richiesta:
+      pdf_path = <dir_del_bib>/<citekey>.pdf
+    Restituisce (href, tooltip_key) solo se il file esiste.
+    """
+    citekey = get_citekey(entry)
+    if not citekey:
+        return None
 
+    pdf_path = (bib_dir / f"{citekey}.pdf").resolve()
+    if not pdf_path.exists():
+        return None
 
-def normalize_pdf_target(raw: str, bib_dir: Path) -> Tuple[str, str]:
-    s = raw.strip().strip("{}")
-    if is_probable_url(s):
-        return s, "PDF"
-    p = Path(s)
-    if not p.is_absolute():
-        p = (bib_dir / p).resolve()
-    return p.as_uri(), "PDF"
-
-
-def extract_pdf_link(entry: Dict[str, Any], bib_dir: Path) -> Optional[Tuple[str, str]]:
-    for f in ("pdf", "fulltext", "link"):
-        v = get_field(entry, f)
-        if v and (".pdf" in v.lower() or is_probable_url(v) or Path(v).suffix.lower() == ".pdf"):
-            return normalize_pdf_target(v, bib_dir)
-
-    url = get_field(entry, "url")
-    if url and ".pdf" in url.lower():
-        return normalize_pdf_target(url, bib_dir)
-
-    file_field = get_field(entry, "file")
-    if file_field:
-        pdf_candidates: List[str] = []
-        for token in re.split(r"[;,\n]+", file_field):
-            token = token.strip().strip("{}")
-            if not token:
-                continue
-            # Zotero/Mendeley style: "desc:path:application/pdf"
-            if token.count(":") >= 2:
-                maybe_path = token.split(":", 2)[1].strip()
-            else:
-                maybe_path = token
-            if ".pdf" in maybe_path.lower():
-                pdf_candidates.append(maybe_path)
-
-        if pdf_candidates:
-            return normalize_pdf_target(pdf_candidates[0], bib_dir)
-
-    return None
+    return pdf_path.as_uri(), citekey
 
 
 # -----------------------------
@@ -237,6 +227,16 @@ def esc(s: str) -> str:
 
 def make_link(href: str, label: str) -> str:
     return f'<a href="{esc(href)}" target="_blank" rel="noopener noreferrer">{esc(label)}</a>'
+
+
+def make_pdf_icon_link(href: str, tooltip: str) -> str:
+    """
+    Link PDF mostrato come icona (niente URL esplicito in tabella).
+    """
+    return (
+        f'<a class="pdf-ico" href="{esc(href)}" target="_blank" '
+        f'rel="noopener noreferrer" title="{esc(tooltip)}" aria-label="{esc(tooltip)}">📄</a>'
+    )
 
 
 def td(content_html: str, full_text: str, cls: str = "") -> str:
@@ -258,10 +258,18 @@ def build_rows(entries: List[Dict[str, Any]], bib_dir: Path) -> List[Dict[str, s
         doi_raw = extract_doi(e) or ""
         doi_html = make_link(f"https://doi.org/{doi_raw}", doi_raw) if doi_raw else ""
 
-        pdf = extract_pdf_link(e, bib_dir)
-        pdf_html = make_link(pdf[0], pdf[1]) if pdf else ""
+        # ---- PDF: usa la regola <citekey>.pdf nella directory del .bib
+        pdf = build_pdf_link_from_citekey(e, bib_dir)
+        if pdf:
+            pdf_href, pdf_key = pdf
+            pdf_html = make_pdf_icon_link(pdf_href, f"Apri PDF: {pdf_key}.pdf")
+            pdf_full = f"{pdf_key}.pdf"
+        else:
+            pdf_html = ""
+            pdf_full = ""
 
         authors_compact, authors_full = authors_compact_and_full(e)
+
         # Chiave di ordinamento: cognome del primo autore (in minuscolo)
         authors_list = extract_authors_list(e)
         authors_sort = ""
@@ -288,16 +296,14 @@ def build_rows(entries: List[Dict[str, Any]], bib_dir: Path) -> List[Dict[str, s
                 "pages": esc(pages),
                 # tooltip text (plain)
                 "doi_full": doi_raw,
-                "pdf_full": (pdf[0] if pdf else ""),
-                "authors_full": authors_full,  # <-- QUI: lista completa per hover
+                "pdf_full": pdf_full,  # mostra solo nome file, non l'URI
+                "authors_full": authors_full,
                 "title_full": title,
                 "journal_full": journal,
                 "volume_full": volume,
                 "year_full": year,
                 "pages_full": pages,
                 "authors_sort": authors_sort,
-
-
             }
         )
     return rows
@@ -372,6 +378,18 @@ def render_html(rows: List[Dict[str, str]], page_title: str) -> str:
     .c-pages  {{ width: 8rem; }}
 
     a {{ display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }}
+
+    /* PDF icon link */
+    a.pdf-ico {{
+      text-decoration: none;
+      font-size: 16px;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 6px;
+    }}
+    a.pdf-ico:hover {{
+      background: rgba(0,0,0,0.06);
+    }}
 
     /* Tooltip hover custom */
     #tip {{
