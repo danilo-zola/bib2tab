@@ -292,6 +292,19 @@ def build_rows(
         volume = extract_volume(e)
         year = extract_year(e)
         pages = extract_pages(e)
+        search_full = " ".join(
+            s
+            for s in [
+                authors_full,
+                title,
+                journal,
+                volume,
+                year,
+                pages,
+                doi_raw,
+            ]
+            if s
+        )
 
         rows.append(
             {
@@ -314,6 +327,7 @@ def build_rows(
                 "year_full": year,
                 "pages_full": pages,
                 "authors_sort": authors_sort,
+                "search_full": search_full,
             }
         )
     return rows
@@ -323,7 +337,7 @@ def render_row(r: Dict[str, str]) -> str:
     authors_html = r["authors"] if r["authors"] else '<span class="muted">—</span>'
 
     return (
-        "<tr>"
+        f'<tr data-search="{esc(r.get("search_full", ""))}" data-year="{esc(r.get("year_full", ""))}">'
         + td(r["doi"], r["doi_full"], "c-doi")
         + td(r["pdf"], r["pdf_full"], "c-pdf")
         + f'<td class="c-authors" data-full="{esc(r["authors_full"])}" data-sort="{esc(r.get("authors_sort", ""))}" title="{esc(r["authors_full"])}">{authors_html}</td>'
@@ -431,7 +445,7 @@ def render_html(rows: List[Dict[str, str]], page_title: str) -> str:
   <h1>{esc(page_title)}</h1>
 
   <div class="toolbar">
-    <input id="q" type="search" placeholder="Filtra (autori, titolo, rivista, anno, DOI, ecc.)…" />
+    <input id="q" type="search" placeholder="Filtra (autori, titolo, rivista, anno, DOI, ecc.). Esempio intervallo: 2015 - 2020" />
     <span class="meta">Righe: <span id="count">{len(rows)}</span></span>
     <span class="meta muted">Suggerimento: clicca sulle intestazioni per ordinare</span>
   </div>
@@ -473,13 +487,67 @@ def render_html(rows: List[Dict[str, str]], page_title: str) -> str:
     return (s || '').toLowerCase();
   }}
 
+  function parseYearRange(raw) {{
+    const s = String(raw || '').toLowerCase();
+    let m = s.match(/\\b(\\d{{4}})\\s*-\\s*(\\d{{4}})\\b/);
+    if (m) {{
+      const a = parseInt(m[1], 10);
+      const b = parseInt(m[2], 10);
+      return {{ min: Math.min(a, b), max: Math.max(a, b), matched: m[0] }};
+    }}
+    m = s.match(/\\btra\\s+il\\s+(\\d{{4}})\\s+e\\s+(\\d{{4}})\\b/);
+    if (m) {{
+      const a = parseInt(m[1], 10);
+      const b = parseInt(m[2], 10);
+      return {{ min: Math.min(a, b), max: Math.max(a, b), matched: m[0] }};
+    }}
+    m = s.match(/(?:^|\\s)-\\s*(\\d{{4}})\\b/);
+    if (m) {{
+      const max = parseInt(m[1], 10);
+      return {{ min: null, max, matched: m[0] }};
+    }}
+    m = s.match(/\\b(\\d{{4}})\\s*-\\s*(?:$|\\s)/);
+    if (m) {{
+      const min = parseInt(m[1], 10);
+      return {{ min, max: null, matched: m[0] }};
+    }}
+    m = s.match(/\\bfino\\s+al\\s+(\\d{{4}})\\b/);
+    if (m) {{
+      const max = parseInt(m[1], 10);
+      return {{ min: null, max, matched: m[0] }};
+    }}
+    m = s.match(/\\bdal\\s+(\\d{{4}})\\b/);
+    if (m) {{
+      const min = parseInt(m[1], 10);
+      return {{ min, max: null, matched: m[0] }};
+    }}
+    return null;
+  }}
+
+  function yearInRange(yearStr, range) {{
+    if (!range) return true;
+    const y = parseInt(String(yearStr || '').match(/\\d{{4}}/)?.[0] || '', 10);
+    if (!Number.isFinite(y)) return false;
+    if (range.min !== null && y < range.min) return false;
+    if (range.max !== null && y > range.max) return false;
+    return true;
+  }}
+
   function applyFilter() {{
-    const needle = normalize(q.value);
+    const raw = normalize(q.value);
+    const range = parseYearRange(raw);
+    const needle = range
+      ? normalize(raw.replace(range.matched, ' ').replace(/\\s+/g, ' ').trim())
+      : raw.trim();
     const rows = tbody.rows;
     let visible = 0;
     for (const r of rows) {{
-      const text = normalize(r.innerText);
-      const show = !needle || text.includes(needle);
+      const custom = r.getAttribute('data-search');
+      const text = normalize(custom || r.innerText);
+      const year = r.getAttribute('data-year');
+      const yearOk = yearInRange(year, range);
+      const textOk = !needle || text.includes(needle);
+      const show = yearOk && textOk;
       r.style.display = show ? '' : 'none';
       if (show) visible++;
     }}
